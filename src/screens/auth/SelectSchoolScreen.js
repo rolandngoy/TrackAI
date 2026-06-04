@@ -10,14 +10,17 @@ import { C } from '../../utils/colors';
 const TYPE_LABEL = { featured: '⭐ Featured', public: 'Public', private: 'Private', community: 'Community' };
 const TYPE_COLOR = { featured: C.P, public: C.S, private: C.TEXT2, community: C.S2 };
 const TYPE_BG    = { featured: C.P_BG, public: C.S_BG, private: C.BORDER, community: '#0a2520' };
+const TYPE_EMOJI = { featured: '⭐', public: '🏫', private: '🎓', community: '📚' };
+const emojiFor   = u => TYPE_EMOJI[u?.t] || '🎓';
+const sameUni    = (a, b) => !!a && !!b && a.n === b.n && a.l === b.l;
 
 export default function SelectSchoolScreen({ navigation, route }) {
   const { role } = route.params;
   const isPro    = role === 'professor';
   const accent   = isPro ? C.P : C.S;
 
-  const [query, setQuery]     = useState('');
-  const [selected, setSelected] = useState(null);
+  const [query, setQuery]       = useState('');
+  const [selected, setSelected] = useState(null); // the chosen university object
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -25,12 +28,9 @@ export default function SelectSchoolScreen({ navigation, route }) {
     return UNIVERSITIES.filter(
       u =>
         u.n.toLowerCase().includes(q) ||
-        u.s.toLowerCase().includes(q) ||
         u.l.toLowerCase().includes(q)
     );
   }, [query]);
-
-  const selData = UNIVERSITIES.find(u => u.n === selected);
 
   return (
     <SafeAreaView style={s.safe}>
@@ -52,14 +52,14 @@ export default function SelectSchoolScreen({ navigation, route }) {
 
       <Text style={s.sub}>
         {isPro ? 'Where are you teaching?' : 'Where are you enrolled?'}
-        {'  ·  Washington State only'}
+        {'  ·  Any U.S. college or university'}
       </Text>
 
       {/* Selected banner */}
       {selected && (
         <View style={[s.banner, { borderColor: accent + '66', backgroundColor: accent + '11' }]}>
-          <Text style={s.bannerEmoji}>{selData?.e}</Text>
-          <Text style={[s.bannerName, { color: accent }]} numberOfLines={1}>{selected}</Text>
+          <Text style={s.bannerEmoji}>{emojiFor(selected)}</Text>
+          <Text style={[s.bannerName, { color: accent }]} numberOfLines={1}>{selected.n}</Text>
           <Text style={{ color: accent, fontSize: 16 }}>✓</Text>
         </View>
       )}
@@ -69,7 +69,7 @@ export default function SelectSchoolScreen({ navigation, route }) {
         <Text style={s.searchIcon}>🔍</Text>
         <TextInput
           style={s.input}
-          placeholder="Search name, abbreviation, or city…"
+          placeholder="Search by school name or city…"
           placeholderTextColor={C.MUTED2}
           value={query}
           onChangeText={setQuery}
@@ -78,26 +78,33 @@ export default function SelectSchoolScreen({ navigation, route }) {
         />
       </View>
       <Text style={s.hint}>
-        {query ? `${filtered.length} result${filtered.length !== 1 ? 's' : ''}` : `${UNIVERSITIES.length} Washington colleges`}
+        {query
+          ? `${filtered.length.toLocaleString()} result${filtered.length !== 1 ? 's' : ''}`
+          : `${UNIVERSITIES.length.toLocaleString()} U.S. colleges & universities`}
       </Text>
 
       {/* List */}
       <FlatList
         data={filtered}
-        keyExtractor={item => item.n}
-        showsVerticalScrollIndicator={false}
+        keyExtractor={(item, index) => `${item.n}|${item.l}|${index}`}
         style={s.list}
+        showsVerticalScrollIndicator
+        keyboardShouldPersistTaps="handled"
+        initialNumToRender={15}
+        maxToRenderPerBatch={20}
+        windowSize={10}
+        removeClippedSubviews
         renderItem={({ item }) => {
-          const isSel = item.n === selected;
+          const isSel = sameUni(item, selected);
           return (
             <TouchableOpacity
               style={[s.row, isSel && { borderColor: accent, backgroundColor: accent + '18' }]}
-              onPress={() => { setSelected(item.n); setQuery(''); }}
+              onPress={() => setSelected(item)}
             >
-              <View style={s.emoji}><Text style={{ fontSize: 16 }}>{item.e}</Text></View>
+              <View style={s.emoji}><Text style={{ fontSize: 16 }}>{emojiFor(item)}</Text></View>
               <View style={{ flex: 1 }}>
                 <Text style={s.uniName}>{item.n}</Text>
-                <Text style={s.uniLoc}>{item.l}</Text>
+                {!!item.l && <Text style={s.uniLoc}>{item.l}</Text>}
                 <View style={[s.typePill, { backgroundColor: TYPE_BG[item.t] }]}>
                   <Text style={[s.typeText, { color: TYPE_COLOR[item.t] }]}>{TYPE_LABEL[item.t]}</Text>
                 </View>
@@ -108,13 +115,13 @@ export default function SelectSchoolScreen({ navigation, route }) {
         }}
       />
 
-      {/* Continue */}
+      {/* Next */}
       <TouchableOpacity
         style={[s.btn, { backgroundColor: accent }, !selected && { opacity: 0.4 }]}
         disabled={!selected}
-        onPress={() => navigation.navigate('CreateAccount', { role, university: selected })}
+        onPress={() => navigation.navigate('CreateAccount', { role, university: selected.n })}
       >
-        <Text style={s.btnTxt}>Continue →</Text>
+        <Text style={s.btnTxt}>Next →</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
