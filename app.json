@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "TrackAI",
+    "slug": "trackai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.trackai.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "TrackAI records lectures to generate study materials.",
+        "NSCameraUsageDescription": "TrackAI uses the camera to scan documents."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.trackai.app",
+      "versionCode": 1,
+      "permissions": ["RECORD_AUDIO"]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "name": "TrackAI",
+      "shortName": "TrackAI",
+      "description": "Understand Today. Ace Tomorrow.",
+      "themeColor": "#0d0f1a",
+      "backgroundColor": "#ffffff",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#4a9eff"
+        }
+      ]
+    ],
+    "scheme": "trackai",
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE_WITH_YOUR_EAS_PROJECT_ID"
+      }
+    }
+  }
+}
